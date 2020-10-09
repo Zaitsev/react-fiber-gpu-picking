@@ -55,7 +55,9 @@ const heatFragment = `
 
     void main() {
         if (hValue < 0.0){
-            gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+            discard;
+//            gl_FragColor = vec4(neonGradient(hValue), 1.0);
+//            gl_FragColor = vec4(1.0,1.0,1.0,1.0);
         }else{
 
             float v = abs(hValue - 1.);
@@ -127,11 +129,10 @@ highlightBox.renderOrder = 100;
 highlightBox.material.transparent=false;
 // highlightBox.material.wireframe=false;
 // highlightBox.material.depthTest=false;
-highlightBox.material.depthFunc=THREE.LessDepth;
-highlightBox.material.side=THREE.DoubleSide;
+// highlightBox.material.depthFunc=THREE.LessDepth;
+// highlightBox.material.side=THREE.DoubleSide;
 
 
-highlightBox.material.transparent=false;
 
 const bg_texture = new THREE.DataTexture(new Uint8Array([0]), 1, 1, THREE.RedFormat, THREE.UnsignedByteType);
 bg_texture.generateMipmaps = false;
@@ -203,11 +204,11 @@ class PickGPU {
 }
 
 export const HeatMap: React.FC = React.memo(() => {
+    const data = useSelector(({data}: State) => data);
     const version = useSelector(({version}: State) => version);
     const tex = useSelector(({tex}: State) => tex);
     const mergedGeometry = useSelector(({mergedGeometry}: State) => mergedGeometry);
     const meshRef = useRef<THREE.Mesh<THREE.BufferGeometry, typeof shaderMaterial>>(null);
-    const hoverRef = useRef<THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>>(null);
     const texMatRef = useRef<THREE.MeshLambertMaterial>(null);
     const meshGroupRef = useRef<THREE.Group>(null);
     const {axisXmax, axisYmax} = mergedGeometry!.userData;
@@ -221,21 +222,31 @@ export const HeatMap: React.FC = React.memo(() => {
     //     gl.render(scene, camera);
     const highlightObject = useCallback(function highlightObject() {
         const id = pickedObject.current;
-        meshRef.current!.material.uniforms.highlightBoxID.value=id;
+
+        const mg = highlightBox;
 
         if (id < 0) {
+            mg.visible = false;
             return;
         }
-        // const offset = (mergedGeometry.attributes['offset'].array as number[]).slice(id * 2, id * 2 + 2)
-        // const scale = (mergedGeometry.attributes['scale'].array as number[]).slice(id * 2, id * 2 + 2)
-        // const mg = highlightBox;
-        // const alittlebit=0.02;
-        // mg.position.x=offset[0]-alittlebit*0.5*scale[0];
-        // mg.position.y=offset[1]-0.5*alittlebit;
-        //
-        // mg.scale.x= scale[0]*(1+alittlebit);
-        // mg.scale.z= scale[1]*(1+alittlebit);
-        // mg.scale.y=  1+alittlebit;
+        mg.visible = true;
+
+        const {rids=[],rids_map=[],scaleAxisX} = mergedGeometry.userData;
+        const [offset_x,offset_y] = (mergedGeometry.attributes['offset'].array as number[]).slice(id * 2, id * 2 + 2)
+        const [scale_x, scale_z] = (mergedGeometry.attributes['scale'].array as number[]).slice(id * 2, id * 2 + 2)
+
+        // console.log(rids_map);
+        const routers = rids.filter((e:any,i:number)=>rids_map[i]===offset_y)
+        const [start,end] = [scaleAxisX.invert(offset_x),scaleAxisX.invert(offset_x+scale_x)]
+        // console.log(offset_y,routers);
+        // console.log(new Date(start*1000),new Date(end*1000));
+        const alittlebit=0;
+        mg.position.x=offset_x-alittlebit*0.5*scale_x;
+        mg.position.y=offset_y-0.5*alittlebit;
+
+        mg.scale.x= scale_x*(1+alittlebit);
+        mg.scale.z= scale_z*(1+alittlebit);
+        mg.scale.y=  1+alittlebit;
 
     }, [mergedGeometry])
     // }, 100);
@@ -248,6 +259,8 @@ export const HeatMap: React.FC = React.memo(() => {
         // gl.clearDepth();
         const id = pick.pick(gl, pickPosition.current);
         if (pickedObject.current !== id) {
+
+            meshRef.current!.material.uniforms.highlightBoxID.value=id;
             pickedObject.current = id;
             highlightObject();
         }
@@ -377,7 +390,7 @@ export const HeatMap: React.FC = React.memo(() => {
                 <mesh name={'meshRef'} ref={meshRef} material={shaderMaterial} renderOrder={1}>
                     <instancedBufferGeometry attach="geometry"/>
                 </mesh>
-                <primitive object={highlightBox} ref={hoverRef} />
+                <primitive object={highlightBox}  />
                 {/*<mesh name={"hovrMesh"} ref={hoverRef} renderOrder={10} >*/}
                 {/*     @ts-ignore */}
                     {/*<boxGeometry name="hoverGeometry" />*/}

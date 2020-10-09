@@ -45,7 +45,7 @@ function createHeightMapArray(constraints: HeatMapContstraints, data: HeatMapDat
 
     if (axisYmax * axisXmax > MAX_AXIS_RESOULTION * MAX_AXIS_RESOULTION) {
         //too high resolution
-        return {rids: [], axisXmax: -axisXmax, axisYmax: -axisYmax, tex: new Uint8Array([])};
+        return {rids: [], rids_map:[],axisXmax: -axisXmax, axisYmax: -axisYmax, tex: new Uint8Array([])};
     }
 
     const tex = new Uint8Array(axisYmax * axisXmax);
@@ -53,6 +53,7 @@ function createHeightMapArray(constraints: HeatMapContstraints, data: HeatMapDat
 
     let y = 0;
     const rids: number[] = [];
+    const rids_map: number[] = [];
     tex.fill(0);
 
     /** D3 scale     */
@@ -107,14 +108,16 @@ function createHeightMapArray(constraints: HeatMapContstraints, data: HeatMapDat
         y = rids.indexOf(data[i][HeatMapDataColumn.router_id]);
         if (y < 0) {
             rids.push(data[i][HeatMapDataColumn.router_id]);
+            rids_map.push(-1);
             y = rids.length - 1;
         }
 
+        const _y = Math.round(THREE.MathUtils.mapLinear(y, 0, routers_count, 0, axisYmax));
+        rids_map[y] = _y;
         if (data[i][HeatMapDataColumn.severity_max] === null) {
             continue;
-        }
 
-        const _y = Math.round(THREE.MathUtils.mapLinear(y, 0, routers_count, 0, axisYmax));
+        }
         const h8 = Math.floor(THREE.MathUtils.mapLinear(data[i][HeatMapDataColumn.severity_max]!, 0, severity_max, 0, 255));
 
         for (let l = 0; (l < data[i][HeatMapDataColumn.duration]!); l++) {
@@ -151,7 +154,7 @@ function createHeightMapArray(constraints: HeatMapContstraints, data: HeatMapDat
     performance.clearMeasures();
     // console.log(axisXmax, axisYmax, severity_max);
     // console.log([...tex]);
-    return {rids, axisXmax, axisYmax, tex};
+    return {rids, rids_map, axisXmax, axisYmax, tex};
 }
 
 export function createHeightMapGeoms(constraints: HeatMapContstraints, data: HeatMapData[], axisRoutersResolution: number, axisTimeResolution: number, heightScale='linear'):{tex:Uint8Array,mergedGeometry:THREE.InstancedBufferGeometry} {
@@ -159,7 +162,7 @@ export function createHeightMapGeoms(constraints: HeatMapContstraints, data: Hea
         console.log('nothing to compute');
         return getInvalidGeometry('No data found');
     }
-    const {rids, axisXmax, axisYmax, tex} = createHeightMapArray(constraints, data, axisRoutersResolution, axisTimeResolution, heightScale);
+    const {rids, rids_map,axisXmax, axisYmax, tex} = createHeightMapArray(constraints, data, axisRoutersResolution, axisTimeResolution, heightScale);
     if (axisXmax < 0 && axisYmax < 0) {
         return getInvalidGeometry(`Router_resolution x Time_resolution exceeds limit  ${MAX_AXIS_RESOULTION * MAX_AXIS_RESOULTION}`);
     }
@@ -388,7 +391,8 @@ export function createHeightMapGeoms(constraints: HeatMapContstraints, data: Hea
     mergedGeometry.userData['scaleAxisX'] = scaleX;
     mergedGeometry.userData['scaleHeight'] = scaleHeight;
     mergedGeometry.userData['scaleAxisY'] = scaleY;
-    mergedGeometry.userData['router_ord_map'] = rids;
+    mergedGeometry.userData['rids'] = rids;
+    mergedGeometry.userData['rids_map'] = rids_map;
     mergedGeometry.userData['is_native'] = is_native;
     performance.mark('merge:end');
     performance.measure('merge tex', 'merge:start', 'merge:end');

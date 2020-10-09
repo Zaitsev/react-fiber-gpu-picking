@@ -18,17 +18,17 @@ export type HeatMapData = [
 
 
 
-// const NUM_R = 5; const DUR_ON_PROB = 0.5;
-// const NUM_R = 50; const DUR_ON_PROB = 0.5;
-const NUM_R = 5000; const DUR_ON_PROB = 0.05;
+const NUM_R = 5; const DUR_ON_PROB = 0.5;
+// const NUM_R = 80; const DUR_ON_PROB = 0.5;
+// const NUM_R = 5000; const DUR_ON_PROB = 0.0005;
 // @ts-ignore
-const dur_anomaly: () => number = r.randomInt(3, 120);
+const dur_anomaly: () => number = r.randomInt(1, 120);
 // @ts-ignore
 const dur_no_anomaly: () => number = r.randomInt(0, 3*60);
 // @ts-ignore
-const s = r.randomExponential(0.999)
+const s = r.randomNormal(100,5000)
 const severity: () => number = ()=> {
-    return Math.round(s()*1000)+1;
+    return Math.round(s())+1;
 };
 
 export let random_data: HeatMapData[] = [];

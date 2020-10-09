@@ -69,7 +69,7 @@ const reducer: Reducer = (state: State, action): State => {
     if (action.type === 'chstate') {
         const version = state.version + 1;
         const {random_data, random_constraints} = generateData(start_from, guard_to)
-        const {mergedGeometry, tex} = createHeightMapGeoms(random_constraints, random_data, 500, 500)
+        const {mergedGeometry, tex} = createHeightMapGeoms(random_constraints, random_data, 5000, 5000)
         return {...state, version, constraints: random_constraints, data: random_data, mergedGeometry, tex}
     }
     return state;
