@@ -40,7 +40,7 @@ const CameraControls = () => {
     // Ref to the controls, so that we can update them on every frame using useFrame
     const controls = useRef();
     // @ts-ignore
-    useFrame((state) => controls.current.update());
+    useFrame((state) => controls.current.update(),100);
     // @ts-ignore
     return <orbitControls ref={controls} dampingFactor={0.25} enableDamping={true} args={[camera, domElement]}/>;
 };
@@ -53,7 +53,7 @@ const addToDO = (inc: number): AnyAction => {
     }
 }
 const guard_to = new Date();
-const start_from = new Date(guard_to.getTime() - 60 * 10 * 1000);
+const start_from = new Date(guard_to.getTime() - 24*60 * 60 * 1000);
 const {random_data, random_constraints} = generateData(start_from, guard_to)
 const initialState = {
     version: 1,

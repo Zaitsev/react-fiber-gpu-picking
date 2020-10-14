@@ -18,9 +18,9 @@ export type HeatMapData = [
 
 
 
-const NUM_R = 5; const DUR_ON_PROB = 0.5;
+// const NUM_R = 5; const DUR_ON_PROB = 0.5;
 // const NUM_R = 80; const DUR_ON_PROB = 0.5;
-// const NUM_R = 5000; const DUR_ON_PROB = 0.0005;
+const NUM_R = 5000; const DUR_ON_PROB = 0.05;
 // @ts-ignore
 const dur_anomaly: () => number = r.randomInt(1, 120);
 // @ts-ignore

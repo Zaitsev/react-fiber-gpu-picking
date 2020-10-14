@@ -125,12 +125,8 @@ const highlightBox = new THREE.Mesh(
 let m4 = new THREE.Matrix4().makeTranslation(0.5, 0.5, 0.5);
 highlightBox.geometry.applyMatrix4(m4);
 highlightBox.renderOrder = 100;
-
 highlightBox.material.transparent=false;
-// highlightBox.material.wireframe=false;
-// highlightBox.material.depthTest=false;
-// highlightBox.material.depthFunc=THREE.LessDepth;
-// highlightBox.material.side=THREE.DoubleSide;
+
 
 
 
@@ -139,7 +135,7 @@ bg_texture.generateMipmaps = false;
 
 
 class PickGPU {
-    pickingTexture = new THREE.WebGLRenderTarget(5, 5);
+    pickingTexture = new THREE.WebGLRenderTarget(1, 1);
     pixelBuffer = new Uint8Array(4);
     pickedObjectSavedColor = 0;
     pickedObject = Array(4);
@@ -177,6 +173,7 @@ class PickGPU {
         renderer.render(scene, camera);
         renderer.setRenderTarget(null);
         // clear the view offset so rendering returns to normal
+        // renderer.render(scene, camera);
         camera.clearViewOffset();
 
         //read the pixel
@@ -191,13 +188,13 @@ class PickGPU {
             (pixelBuffer[2] << 16) |
             (pixelBuffer[1] << 8) |
             (pixelBuffer[0]);
-        return id - 1;
-        //     console.log(id, pixelBuffer);
+            console.log(id, pixelBuffer);
         //
         //     this.pickedObject = [...pixelBuffer];
         // }
         //overlay color for debug
         // renderer.render(scene, camera);
+        return id - 1;
 
 
     }
@@ -236,8 +233,8 @@ export const HeatMap: React.FC = React.memo(() => {
         const [scale_x, scale_z] = (mergedGeometry.attributes['scale'].array as number[]).slice(id * 2, id * 2 + 2)
 
         // console.log(rids_map);
-        const routers = rids.filter((e:any,i:number)=>rids_map[i]===offset_y)
-        const [start,end] = [scaleAxisX.invert(offset_x),scaleAxisX.invert(offset_x+scale_x)]
+        // const routers = rids.filter((e:any,i:number)=>rids_map[i]===offset_y)
+        // const [start,end] = [scaleAxisX.invert(offset_x),scaleAxisX.invert(offset_x+scale_x)]
         // console.log(offset_y,routers);
         // console.log(new Date(start*1000),new Date(end*1000));
         const alittlebit=0;
@@ -387,7 +384,7 @@ export const HeatMap: React.FC = React.memo(() => {
 
             <group ref={meshGroupRef}
             >
-                <mesh name={'meshRef'} ref={meshRef} material={shaderMaterial} renderOrder={1}>
+                <mesh name={'meshRef'} ref={meshRef} material={shaderMaterial} >
                     <instancedBufferGeometry attach="geometry"/>
                 </mesh>
                 <primitive object={highlightBox}  />
